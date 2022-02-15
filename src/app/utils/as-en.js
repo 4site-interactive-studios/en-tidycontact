@@ -94,7 +94,7 @@ export class asEN {
     const region = this.getFieldValue(this.fields.region);
     const postalCode = this.getFieldValue(this.fields.postalCode);
     const country = this.getFieldValue(this.fields.country);
-    const data = {
+    const formData = {
       address1,
       address2,
       city,
@@ -107,24 +107,33 @@ export class asEN {
     const ret = fetch(this.endpoint, {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(formData),
     })
       .then((response) => response.json())
-      .then((data) => {
+      .then(async (data) => {
         console.log(new Date(), "callAPI response", data);
         const recordField = this.getField(this.as_record);
         const dateField = this.getField(this.as_date);
         const statusField = this.getField(this.as_status);
         if ("changed" in data && data.valid === true) {
           let record = this.setFields(data.changed);
-          record["requestId"] = data.requestId;
+          record["formData"] = formData;
+          await this.checkSum(JSON.stringify(record)).then((checksum) => {
+            // console.log("checksum", checksum);
+            record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
+            record["checksum"] = checksum;
+          });
           if (recordField) {
             recordField.value = JSON.stringify(record);
           }
           if (dateField) {
-            dateField.value = new Date().toLocaleString("en-US", {
-              hour12: false,
-            });
+            dateField.value = new Date()
+              .toLocaleString("en-ZA", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              })
+              .replace(/\/+/g, ""); // Format date as YYYYMMDD
           }
           if (statusField) {
             statusField.value = "Success";
@@ -150,14 +159,48 @@ export class asEN {
   }
   setFields(data) {
     let response = {};
+    const countryValue = this.getFieldValue(this.fields.country);
     // Set the fields
     for (const key in data) {
       const field = this.getField(this.fields[key]);
       if (field) {
-        response[key] = { from: field.value, to: data[key] };
-        field.value = data[key];
+        let value = data[key];
+        if (
+          key === "postalCode" &&
+          ["US", "USA", "United States"].includes(countryValue)
+        ) {
+          value = value.match(/\d+/g).join(""); // Remove all non-numeric characters
+        }
+        response[key] = { from: field.value, to: value };
+        field.value = value;
+      } else {
+        // There's no field for this key
+        if (key === "address2") {
+          const address1 = this.getField(this.fields["address1"]);
+          if (address1) {
+            let value = address1.value + " " + data[key];
+            response["address1"] = { from: address1.value, to: value };
+            address1.value = value;
+          }
+        }
       }
     }
     return response;
+  }
+  async checkSum(str) {
+    // encode as UTF-8
+    const msgBuffer = new TextEncoder("utf-8").encode(str);
+
+    // hash the message
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
+
+    // convert ArrayBuffer to Array
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+    // convert bytes to hex string
+    const hashHex = hashArray
+      .map((b) => ("00" + b.toString(16)).slice(-2))
+      .join("");
+    return hashHex;
   }
 }
