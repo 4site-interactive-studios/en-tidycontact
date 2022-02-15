@@ -16,7 +16,7 @@ export class asEN {
   }; // Address Standardization Fields
 
   constructor() {
-    console.log("asEN constructor", this.shouldRun());
+    if (this.isDebug()) console.log("asEN constructor", this.shouldRun());
     if (this.shouldRun()) {
       if (document.readyState !== "loading") {
         this.init();
@@ -30,6 +30,7 @@ export class asEN {
   }
   init() {
     this.loadOptions();
+    this.createFields();
     this.addEventListeners();
   }
   shouldRun() {
@@ -74,6 +75,7 @@ export class asEN {
       const field = this.getField(this.fields[key]);
       if (field) {
         field.addEventListener("change", () => {
+          if (this.isDebug()) console.log("asEN changed " + field.name, true);
           this.isDirty = true;
         });
       }
@@ -81,6 +83,7 @@ export class asEN {
     // Add event listener to submit
     window.enOnSubmit = () => {
       if (this.isDirty && !this.wasCalled) {
+        if (this.isDebug()) console.log("asEN Calling Adress API");
         return this.callAPI();
       }
       return true;
@@ -104,6 +107,7 @@ export class asEN {
       cid: this.cid,
     };
     this.wasCalled = true;
+    if (this.isDebug()) console.log("asEN formData", formData);
     const ret = fetch(this.endpoint, {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       method: "POST",
@@ -111,7 +115,7 @@ export class asEN {
     })
       .then((response) => response.json())
       .then(async (data) => {
-        console.log(new Date(), "callAPI response", data);
+        if (this.isDebug()) console.log("asEN callAPI response", data);
         const recordField = this.getField(this.as_record);
         const dateField = this.getField(this.as_date);
         const statusField = this.getField(this.as_status);
@@ -119,7 +123,7 @@ export class asEN {
           let record = this.setFields(data.changed);
           record["formData"] = formData;
           await this.checkSum(JSON.stringify(record)).then((checksum) => {
-            // console.log("checksum", checksum);
+            if (this.isDebug()) console.log("asEN checksum", checksum);
             record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
             record["checksum"] = checksum;
           });
@@ -202,5 +206,51 @@ export class asEN {
       .map((b) => ("00" + b.toString(16)).slice(-2))
       .join("");
     return hashHex;
+  }
+  isDebug() {
+    var regex = new RegExp("[\\?&]debug=([^&#]*)");
+    var results = regex.exec(location.search);
+    return results === null
+      ? ""
+      : decodeURIComponent(results[1].replace(/\+/g, " "));
+  }
+  // Create a hidden input field
+  createHiddenInput(name, value = "") {
+    const form = document.querySelector("form.en__component");
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.classList.add("en__field__input");
+    input.classList.add("en__field__input--text");
+    input.classList.add("engrid-added-input");
+    input.value = value;
+    form.appendChild(input);
+    return input;
+  }
+  createFields() {
+    if (this.as_record) {
+      const recordField = this.getField(this.as_record);
+      if (!recordField) {
+        this.createHiddenInput(this.as_record, "");
+        if (this.isDebug())
+          console.log("asEN creating hidden field: " + this.as_record);
+      }
+    }
+    if (this.as_date) {
+      const dateField = this.getField(this.as_date);
+      if (!dateField) {
+        this.createHiddenInput(this.as_date, "");
+        if (this.isDebug())
+          console.log("asEN creating hidden field: " + this.as_date);
+      }
+    }
+    if (this.as_status) {
+      const statusField = this.getField(this.as_status);
+      if (!statusField) {
+        this.createHiddenInput(this.as_status, "");
+        if (this.isDebug())
+          console.log("asEN creating hidden field: " + this.as_status);
+      }
+    }
   }
 }
