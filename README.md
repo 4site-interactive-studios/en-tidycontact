@@ -4,6 +4,11 @@ This project integrates your Engaging Networks form with the Address Standardiza
 
 ## How to use
 
+0. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden". 
+- Address Standardization Record
+- Address Standardization Date
+- Address Standardization Status
+
 1. Add the script below to the Engaging Networks page:
 
 ```html
