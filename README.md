@@ -2,12 +2,14 @@
 
 This project integrates your Engaging Networks form with the Address Standardization service.
 
-## How to use
+## Set up in Engaging Networks
 
-0. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden". 
+1. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden". 
 - Address Standardization Record
 - Address Standardization Date
 - Address Standardization Status
+
+## How to use
 
 1. Add the script below to the Engaging Networks page:
 
