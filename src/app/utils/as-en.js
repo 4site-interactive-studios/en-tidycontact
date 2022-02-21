@@ -164,9 +164,10 @@ export class asEN {
   setFields(data) {
     let response = {};
     const countryValue = this.getFieldValue(this.fields.country);
+    const postalCodeValue = this.getFieldValue(this.fields.postalCode);
     // Check if there's no address2 field
     const address2Field = this.getField(this.fields.address2);
-    if (!address2Field && data.address2) {
+    if ("address2" in data && !address2Field) {
       const address = this.getFieldValue(this.fields.address1);
       if (address == data.address1 + " " + data.address2) {
         delete data.address1;
@@ -175,6 +176,14 @@ export class asEN {
         data.address1 = data.address1 + " " + data.address2;
         delete data.address2;
       }
+    }
+    if (
+      "postalCode" in data &&
+      postalCodeValue.match(/\d+/g).join("") ===
+        data.postalCode.match(/\d+/g).join("")
+    ) {
+      // Postal code is the same
+      delete data.postalCode;
     }
     // Set the fields
     for (const key in data) {
