@@ -164,6 +164,18 @@ export class asEN {
   setFields(data) {
     let response = {};
     const countryValue = this.getFieldValue(this.fields.country);
+    // Check if there's no address2 field
+    const address2Field = this.getField(this.fields.address2);
+    if (!address2Field && data.address2) {
+      const address = this.getFieldValue(this.fields.address1);
+      if (address == data.address1 + " " + data.address2) {
+        delete data.address1;
+        delete data.address2;
+      } else {
+        data.address1 = data.address1 + " " + data.address2;
+        delete data.address2;
+      }
+    }
     // Set the fields
     for (const key in data) {
       const field = this.getField(this.fields[key]);
@@ -177,16 +189,6 @@ export class asEN {
         }
         response[key] = { from: field.value, to: value };
         field.value = value;
-      } else {
-        // There's no field for this key
-        if (key === "address2") {
-          const address1 = this.getField(this.fields["address1"]);
-          if (address1) {
-            let value = address1.value + " " + data[key];
-            response["address1"] = { from: address1.value, to: value };
-            address1.value = value;
-          }
-        }
       }
     }
     return response;
@@ -223,6 +225,7 @@ export class asEN {
     input.classList.add("en__field__input");
     input.classList.add("en__field__input--text");
     input.classList.add("engrid-added-input");
+    input.setAttribute("autocomplete", "off");
     input.value = value;
     form.appendChild(input);
     return input;
