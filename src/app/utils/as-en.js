@@ -131,25 +131,24 @@ export class asEN {
             recordField.value = JSON.stringify(record);
           }
           if (dateField) {
-            dateField.value = new Date()
-              .toLocaleString("en-ZA", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-              })
-              .replace(/\/+/g, ""); // Format date as YYYYMMDD
+            dateField.value = this.todaysDate();
           }
           if (statusField) {
             statusField.value = "Success";
           }
         } else if ("error" in data) {
+          let record = new Object();
+          record["formData"] = formData;
+          await this.checkSum(JSON.stringify(record)).then((checksum) => {
+            if (this.isDebug()) console.log("asEN checksum", checksum);
+            record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
+            record["checksum"] = checksum;
+          });
           if (recordField) {
-            recordField.value = JSON.stringify({ requestId: data.requestId });
+            recordField.value = JSON.stringify(record);
           }
           if (dateField) {
-            dateField.value = new Date().toLocaleString("en-US", {
-              hour12: false,
-            });
+            dateField.value = this.todaysDate();
           }
           if (statusField) {
             statusField.value = data.error;
@@ -264,5 +263,14 @@ export class asEN {
           console.log("asEN creating hidden field: " + this.as_status);
       }
     }
+  }
+  todaysDate() {
+    return new Date()
+      .toLocaleString("en-ZA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      })
+      .replace(/\/+/g, ""); // Format date as YYYYMMDD
   }
 }
