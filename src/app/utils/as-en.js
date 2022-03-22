@@ -29,9 +29,31 @@ export class asEN {
     }
   }
   init() {
+    while (
+      !this.checkNested(
+        EngagingNetworks,
+        "require",
+        "_defined",
+        "enjs",
+        "checkSubmissionFailed"
+      )
+    ) {
+      if (this.isDebug()) console.log("asEN waiting for EngagingNetworks");
+      window.setTimeout(() => {
+        this.init();
+      }, 10);
+      return;
+    }
     this.loadOptions();
     this.createFields();
     this.addEventListeners();
+    if (
+      !EngagingNetworks.require._defined.enjs.checkSubmissionFailed() &&
+      this.getFieldValue(this.fields.address1) != ""
+    ) {
+      if (this.isDebug()) console.log("asEN Address Field is not empty");
+      this.isDirty = true;
+    }
   }
   shouldRun() {
     // Only run if there's a engaging networks form
@@ -272,5 +294,10 @@ export class asEN {
         day: "2-digit",
       })
       .replace(/\/+/g, ""); // Format date as YYYYMMDD
+  }
+  checkNested(obj, level, ...rest) {
+    if (obj === undefined) return false;
+    if (rest.length == 0 && obj.hasOwnProperty(level)) return true;
+    return this.checkNested(obj[level], ...rest);
   }
 }
