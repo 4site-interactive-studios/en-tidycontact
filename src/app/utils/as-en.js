@@ -6,6 +6,7 @@ export class asEN {
   as_record = ""; // Address Standardization Record
   as_date = ""; // Date of Address Standardization
   as_status = ""; // Status of Address Standardization
+  countries = []; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
   fields = {
     address1: "supporter.address1", // Address Field 1
     address2: "supporter.address2", // Address Field 2
@@ -65,22 +66,30 @@ export class asEN {
   }
   loadOptions() {
     // Load options from script tag
-    const scriptTag = document.querySelector("script[src*='as-en.js']");
-    this.fields.address1 =
-      scriptTag.getAttribute("data-address1") || this.fields.address1;
-    this.fields.address2 =
-      scriptTag.getAttribute("data-address2") || this.fields.address2;
-    this.fields.city = scriptTag.getAttribute("data-city") || this.fields.city;
-    this.fields.region =
-      scriptTag.getAttribute("data-region") || this.fields.region;
-    this.fields.postalCode =
-      scriptTag.getAttribute("data-postalCode") || this.fields.postalCode;
-    this.fields.country =
-      scriptTag.getAttribute("data-country") || this.fields.country;
-    this.as_record = scriptTag.getAttribute("data-as_record") || this.as_record;
-    this.as_date = scriptTag.getAttribute("data-as_date") || this.as_date;
-    this.as_status = scriptTag.getAttribute("data-as_status") || this.as_status;
-    this.cid = scriptTag.getAttribute("data-cid") || this.cid;
+    this.fields.address1 = this.getScriptData("address1", this.fields.address1);
+    this.fields.address2 = this.getScriptData("address2", this.fields.address2);
+    this.fields.city = this.getScriptData("city", this.fields.city);
+    this.fields.region = this.getScriptData("region", this.fields.region);
+    this.fields.postalCode = this.getScriptData(
+      "postalCode",
+      this.fields.postalCode
+    );
+    this.fields.country = this.getScriptData("country", this.fields.country);
+    this.as_record = this.getScriptData("as_record", this.as_record);
+    this.as_date = this.getScriptData("as_date", this.as_date);
+    this.as_status = this.getScriptData("as_status", this.as_status);
+    this.cid = this.getScriptData("cid", this.cid);
+    const country_allow = this.getScriptData(
+      "country-allow",
+      this.country_allow
+    );
+    if (country_allow) {
+      this.countries = country_allow
+        .split(",")
+        .map((c) => c.trim().toLowerCase());
+    }
+
+    console.log("Countries Allowed", this.countries);
   }
   getField(name) {
     // Get the field by name
@@ -119,6 +128,21 @@ export class asEN {
     const region = this.getFieldValue(this.fields.region);
     const postalCode = this.getFieldValue(this.fields.postalCode);
     const country = this.getFieldValue(this.fields.country);
+    if (!this.countryAllowed(country)) {
+      const recordField = this.getField(this.as_record);
+      const dateField = this.getField(this.as_date);
+      const statusField = this.getField(this.as_status);
+      if (recordField) {
+        recordField.value = "DISALLOWED";
+      }
+      if (dateField) {
+        dateField.value = this.todaysDate();
+      }
+      if (statusField) {
+        statusField.value = "DISALLOWED";
+      }
+      return true;
+    }
     const formData = {
       address1,
       address2,
@@ -299,5 +323,18 @@ export class asEN {
     if (obj === undefined) return false;
     if (rest.length == 0 && obj.hasOwnProperty(level)) return true;
     return this.checkNested(obj[level], ...rest);
+  }
+  countryAllowed(country) {
+    return this.countries.length > 0
+      ? this.countries.includes(country.toLowerCase())
+      : true;
+  }
+  getScriptData(attribute, defaultValue = "") {
+    const scriptTag = document.querySelector("script[src*='as-en.js']");
+    if (scriptTag) {
+      const data = scriptTag.getAttribute("data-" + attribute);
+      return data ?? defaultValue;
+    }
+    return defaultValue;
   }
 }
