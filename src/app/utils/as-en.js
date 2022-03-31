@@ -89,7 +89,7 @@ export class asEN {
         .map((c) => c.trim().toLowerCase());
     }
 
-    console.log("Countries Allowed", this.countries);
+    if (this.isDebug()) console.log("Countries Allowed", this.countries);
   }
   getField(name) {
     // Get the field by name
