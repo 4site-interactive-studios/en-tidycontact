@@ -1,5 +1,7 @@
 export class asEN {
   endpoint = "https://mid.4sitestudios.com/address-standardize/"; // Address Standardization API
+  // endpoint =
+  //   "https://18us66489a.execute-api.us-east-1.amazonaws.com/default/addressStandardize"; // Address Standardization API
   wasCalled = false; // True if the API endpoint was called
   isDirty = false; // True if the address was changed by the user
   cid = 0; // Client ID
@@ -10,6 +12,7 @@ export class asEN {
   fields = {
     address1: "supporter.address1", // Address Field 1
     address2: "supporter.address2", // Address Field 2
+    address3: "supporter.address3", // Address Field 3 - This is only used for field creation
     city: "supporter.city", // City field
     region: "supporter.region", // State field
     postalCode: "supporter.postcode", // Zipcode field
@@ -150,10 +153,12 @@ export class asEN {
       region,
       postalCode,
       country,
+      url: window.location.href,
       cid: this.cid,
     };
     this.wasCalled = true;
-    if (this.isDebug()) console.log("asEN formData", formData);
+    if (this.isDebug())
+      console.log("asEN formData", JSON.parse(JSON.stringify(formData)));
     const ret = fetch(this.endpoint, {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       method: "POST",
@@ -161,7 +166,11 @@ export class asEN {
     })
       .then((response) => response.json())
       .then(async (data) => {
-        if (this.isDebug()) console.log("asEN callAPI response", data);
+        if (this.isDebug())
+          console.log(
+            "asEN callAPI response",
+            JSON.parse(JSON.stringify(data))
+          );
         const recordField = this.getField(this.as_record);
         const dateField = this.getField(this.as_date);
         const statusField = this.getField(this.as_status);
@@ -308,6 +317,17 @@ export class asEN {
         if (this.isDebug())
           console.log("asEN creating hidden field: " + this.as_status);
       }
+    }
+    // If there's no Address 2 or Address 3 field, create them
+    if (!this.getField(this.fields.address2)) {
+      this.createHiddenInput(this.fields.address2, "");
+      if (this.isDebug())
+        console.log("asEN creating hidden field: " + this.fields.address2);
+    }
+    if (!this.getField(this.fields.address3)) {
+      this.createHiddenInput(this.fields.address3, "");
+      if (this.isDebug())
+        console.log("asEN creating hidden field: " + this.fields.address3);
     }
   }
   todaysDate() {
