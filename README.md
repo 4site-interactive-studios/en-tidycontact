@@ -1,13 +1,13 @@
-# Address Standardization Script for Engaging Networks
+# TidyContact Script for Engaging Networks
 
-This project integrates your Engaging Networks form with the Address Standardization service.
+This project integrates your Engaging Networks form with the TidyContact Address Standardization service.
 
 ## Set up in Engaging Networks
 
 1. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden". 
-- Address Standardization Record
-- Address Standardization Date
-- Address Standardization Status
+- TidyContact Address Record
+- TidyContact Address Date
+- TidyContact Address Status
 
 ## How to use
 
