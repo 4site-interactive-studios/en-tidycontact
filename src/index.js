@@ -1,4 +1,4 @@
-import asEN from "./app/app";
+import TidyContact from "./app/app";
 import "./scss/main.scss";
 
-new asEN();
+new TidyContact();

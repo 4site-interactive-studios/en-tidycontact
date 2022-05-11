@@ -1,2 +1,2 @@
-import { asEN } from "./utils/as-en";
-export default asEN;
+import { TidyContact } from "./utils/tidycontact";
+export default TidyContact;

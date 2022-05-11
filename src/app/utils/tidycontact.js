@@ -1,8 +1,10 @@
-export class asEN {
-  endpoint = "https://mid.4sitestudios.com/address-standardize/"; // Address Standardization API
-  // endpoint =
-  //   "https://18us66489a.execute-api.us-east-1.amazonaws.com/default/addressStandardize"; // Address Standardization API
+export class TidyContact {
+  // endpoint = "https://mid.4sitestudios.com/address-standardize/"; // Address Standardization API
+  endpoint = "https://tidy-contact.tidycon.workers.dev"; // Address Standardization API
+  // endpoint = "https://httpstat.us/500?sleep=50000"; // Address Standardization API
   wasCalled = false; // True if the API endpoint was called
+  httpStatus = null;
+  timeout = 5; // Seconds to API Timeout
   isDirty = false; // True if the address was changed by the user
   cid = 0; // Client ID
   as_record = ""; // Address Standardization Record
@@ -20,7 +22,8 @@ export class asEN {
   }; // Address Standardization Fields
 
   constructor() {
-    if (this.isDebug()) console.log("asEN constructor", this.shouldRun());
+    if (this.isDebug())
+      console.log("TidyContact constructor", this.shouldRun());
     if (this.shouldRun()) {
       if (document.readyState !== "loading") {
         this.init();
@@ -42,7 +45,8 @@ export class asEN {
         "checkSubmissionFailed"
       )
     ) {
-      if (this.isDebug()) console.log("asEN waiting for EngagingNetworks");
+      if (this.isDebug())
+        console.log("TidyContact waiting for EngagingNetworks");
       window.setTimeout(() => {
         this.init();
       }, 10);
@@ -55,7 +59,7 @@ export class asEN {
       !EngagingNetworks.require._defined.enjs.checkSubmissionFailed() &&
       this.getFieldValue(this.fields.address1) != ""
     ) {
-      if (this.isDebug()) console.log("asEN Address Field is not empty");
+      if (this.isDebug()) console.log("TidyContact Address Field is not empty");
       this.isDirty = true;
     }
   }
@@ -109,7 +113,8 @@ export class asEN {
       const field = this.getField(this.fields[key]);
       if (field) {
         field.addEventListener("change", () => {
-          if (this.isDebug()) console.log("asEN changed " + field.name, true);
+          if (this.isDebug())
+            console.log("TidyContact changed " + field.name, true);
           this.isDirty = true;
         });
       }
@@ -117,7 +122,7 @@ export class asEN {
     // Add event listener to submit
     window.enOnSubmit = () => {
       if (this.isDirty && !this.wasCalled) {
-        if (this.isDebug()) console.log("asEN Calling Adress API");
+        if (this.isDebug()) console.log("TidyContact Calling Adress API");
         return this.callAPI();
       }
       return true;
@@ -158,17 +163,20 @@ export class asEN {
     };
     this.wasCalled = true;
     if (this.isDebug())
-      console.log("asEN formData", JSON.parse(JSON.stringify(formData)));
-    const ret = fetch(this.endpoint, {
+      console.log("TidyContact formData", JSON.parse(JSON.stringify(formData)));
+    const ret = this.fetchTimeout(this.endpoint, this.timeout, {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       method: "POST",
       body: JSON.stringify(formData),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        this.httpStatus = response.status;
+        return response.json();
+      })
       .then(async (data) => {
         if (this.isDebug())
           console.log(
-            "asEN callAPI response",
+            "TidyContact callAPI response",
             JSON.parse(JSON.stringify(data))
           );
         const recordField = this.getField(this.as_record);
@@ -178,7 +186,7 @@ export class asEN {
           let record = this.setFields(data.changed);
           record["formData"] = formData;
           await this.checkSum(JSON.stringify(record)).then((checksum) => {
-            if (this.isDebug()) console.log("asEN checksum", checksum);
+            if (this.isDebug()) console.log("TidyContact checksum", checksum);
             record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
             record["checksum"] = checksum;
           });
@@ -195,7 +203,7 @@ export class asEN {
           let record = new Object();
           record["formData"] = formData;
           await this.checkSum(JSON.stringify(record)).then((checksum) => {
-            if (this.isDebug()) console.log("asEN checksum", checksum);
+            if (this.isDebug()) console.log("TidyContact checksum", checksum);
             record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
             record["checksum"] = checksum;
           });
@@ -211,7 +219,13 @@ export class asEN {
         }
       })
       .catch((error) => {
-        console.error("Address Standardization Error", error);
+        if (error.toString().includes("AbortError")) {
+          // fetch aborted due to timeout
+          if (this.isDebug()) console.log("TidyContact fetch aborted");
+          this.httpStatus = 408;
+        }
+        // network error or json parsing error
+        this.writeError(error);
       });
     return ret;
   }
@@ -299,7 +313,7 @@ export class asEN {
       if (!recordField) {
         this.createHiddenInput(this.as_record, "");
         if (this.isDebug())
-          console.log("asEN creating hidden field: " + this.as_record);
+          console.log("TidyContact creating hidden field: " + this.as_record);
       }
     }
     if (this.as_date) {
@@ -307,7 +321,7 @@ export class asEN {
       if (!dateField) {
         this.createHiddenInput(this.as_date, "");
         if (this.isDebug())
-          console.log("asEN creating hidden field: " + this.as_date);
+          console.log("TidyContact creating hidden field: " + this.as_date);
       }
     }
     if (this.as_status) {
@@ -315,19 +329,23 @@ export class asEN {
       if (!statusField) {
         this.createHiddenInput(this.as_status, "");
         if (this.isDebug())
-          console.log("asEN creating hidden field: " + this.as_status);
+          console.log("TidyContact creating hidden field: " + this.as_status);
       }
     }
     // If there's no Address 2 or Address 3 field, create them
     if (!this.getField(this.fields.address2)) {
       this.createHiddenInput(this.fields.address2, "");
       if (this.isDebug())
-        console.log("asEN creating hidden field: " + this.fields.address2);
+        console.log(
+          "TidyContact creating hidden field: " + this.fields.address2
+        );
     }
     if (!this.getField(this.fields.address3)) {
       this.createHiddenInput(this.fields.address3, "");
       if (this.isDebug())
-        console.log("asEN creating hidden field: " + this.fields.address3);
+        console.log(
+          "TidyContact creating hidden field: " + this.fields.address3
+        );
     }
   }
   todaysDate() {
@@ -356,5 +374,57 @@ export class asEN {
       return data ?? defaultValue;
     }
     return defaultValue;
+  }
+  fetchTimeout(url, ms, { signal, ...options } = {}) {
+    const controller = new AbortController();
+    const promise = fetch(url, { signal: controller.signal, ...options });
+    if (signal) signal.addEventListener("abort", () => controller.abort());
+    const timeout = setTimeout(() => controller.abort(), ms * 1000);
+    return promise.finally(() => clearTimeout(timeout));
+  }
+  writeError(error) {
+    const recordField = this.getField(this.as_record);
+    const dateField = this.getField(this.as_date);
+    const statusField = this.getField(this.as_status);
+    if (recordField) {
+      let errorType = "";
+      switch (this.httpStatus) {
+        case 400:
+          errorType = "Bad Request";
+          break;
+        case 401:
+          errorType = "Unauthorized";
+          break;
+        case 403:
+          errorType = "Forbidden";
+          break;
+        case 404:
+          errorType = "Not Found";
+          break;
+        case 408:
+          errorType = "API Request Timeout";
+          break;
+        case 500:
+          errorType = "Internal Server Error";
+          break;
+        case 503:
+          errorType = "Service Unavailable";
+          break;
+        default:
+          errorType = "Unknown Error";
+          break;
+      }
+      const errorData = {
+        status: this.httpStatus,
+        error: typeof error === "string" ? error : errorType,
+      };
+      recordField.value = JSON.stringify(errorData);
+    }
+    if (dateField) {
+      dateField.value = this.todaysDate();
+    }
+    if (statusField) {
+      statusField.value = "API Error";
+    }
   }
 }

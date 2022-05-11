@@ -10,7 +10,7 @@ const stylesHandler = "style-loader";
 const config = {
   entry: "./src/index.js",
   output: {
-    filename: "as-en.js",
+    filename: "tidycontact.js",
     path: path.resolve(__dirname, "dist"),
     clean: true,
   },
