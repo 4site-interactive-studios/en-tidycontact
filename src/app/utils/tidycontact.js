@@ -368,11 +368,14 @@ export class TidyContact {
       : true;
   }
   getScriptData(attribute, defaultValue = "") {
-    const scriptTag = document.querySelector("script[src*='as-en.js']");
+    const scriptTag = document.querySelector(
+      "script[src*='cdn.tidycontact.io/engagingnetworks.js']"
+    );
     if (scriptTag) {
       const data = scriptTag.getAttribute("data-" + attribute);
       return data ?? defaultValue;
     }
+    if (this.isDebug()) console.error("TidyContact Script Not Found");
     return defaultValue;
   }
   fetchTimeout(url, ms, { signal, ...options } = {}) {
