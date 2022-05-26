@@ -1,6 +1,6 @@
 export class TidyContact {
   // endpoint = "https://mid.4sitestudios.com/address-standardize/"; // Address Standardization API
-  endpoint = "https://tidy-contact.tidycon.workers.dev"; // Address Standardization API
+  endpoint = "https://api.tidycontact.io"; // Address Standardization API
   // endpoint = "https://httpstat.us/500?sleep=50000"; // Address Standardization API
   wasCalled = false; // True if the API endpoint was called
   httpStatus = null;
