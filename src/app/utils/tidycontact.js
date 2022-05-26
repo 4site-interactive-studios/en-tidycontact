@@ -136,10 +136,14 @@ export class TidyContact {
     const region = this.getFieldValue(this.fields.region);
     const postalCode = this.getFieldValue(this.fields.postalCode);
     const country = this.getFieldValue(this.fields.country);
+
+    const latitudeField = this.getField("supporter.geo.latitude");
+    const longitudeField = this.getField("supporter.geo.longitude");
+    const recordField = this.getField(this.as_record);
+    const dateField = this.getField(this.as_date);
+    const statusField = this.getField(this.as_status);
+
     if (!this.countryAllowed(country)) {
-      const recordField = this.getField(this.as_record);
-      const dateField = this.getField(this.as_date);
-      const statusField = this.getField(this.as_status);
       if (recordField) {
         recordField.value = "DISALLOWED";
       }
@@ -179,17 +183,26 @@ export class TidyContact {
             "TidyContact callAPI response",
             JSON.parse(JSON.stringify(data))
           );
-        const recordField = this.getField(this.as_record);
-        const dateField = this.getField(this.as_date);
-        const statusField = this.getField(this.as_status);
-        if ("changed" in data && data.valid === true) {
-          let record = this.setFields(data.changed);
+
+        if (data.valid === true) {
+          let record = new Object();
+          if ("changed" in data) {
+            record = this.setFields(data.changed);
+          }
           record["formData"] = formData;
           await this.checkSum(JSON.stringify(record)).then((checksum) => {
             if (this.isDebug()) console.log("TidyContact checksum", checksum);
             record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
             record["checksum"] = checksum;
           });
+          if ("latitude" in data) {
+            latitudeField.value = data.latitude;
+            record["latitude"] = data.latitude;
+          }
+          if ("longitude" in data) {
+            longitudeField.value = data.longitude;
+            record["longitude"] = data.longitude;
+          }
           if (recordField) {
             recordField.value = JSON.stringify(record);
           }
@@ -199,8 +212,7 @@ export class TidyContact {
           if (statusField) {
             statusField.value = "Success";
           }
-        }
-        if (data.valid === false) {
+        } else {
           let record = new Object();
           record["formData"] = formData;
           await this.checkSum(JSON.stringify(record)).then((checksum) => {
@@ -310,6 +322,19 @@ export class TidyContact {
     return input;
   }
   createFields() {
+    // Creating Latitude and Longitude fields
+    const latitudeField = this.getField("supporter.geo.latitude");
+    const longitudeField = this.getField("supporter.geo.longitude");
+    if (!latitudeField) {
+      this.createHiddenInput("supporter.geo.latitude", "");
+      if (this.isDebug())
+        console.log("Creating Hidden Field: supporter.geo.latitude");
+    }
+    if (!longitudeField) {
+      this.createHiddenInput("supporter.geo.longitude", "");
+      if (this.isDebug())
+        console.log("Creating Hidden Field: supporter.geo.longitude");
+    }
     if (this.as_record) {
       const recordField = this.getField(this.as_record);
       if (!recordField) {
