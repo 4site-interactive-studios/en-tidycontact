@@ -4,7 +4,8 @@ This project integrates your Engaging Networks form with the TidyContact Address
 
 ## Set up in Engaging Networks
 
-1. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden". 
+1. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden".
+
 - TidyContact Address Record
 - TidyContact Address Date
 - TidyContact Address Status
@@ -37,6 +38,7 @@ Every option can be set as a data attribute on the `script` tag.
 - **region** - State Field Name.
 - **postalCode** - Postal Code (zipcode) Field Name.
 - **country** - Country Field Name.
+- **us_zip_divider** - US Zipcode Divider.
 
 <div style="page-break-after: always;"></div>
 
@@ -58,6 +60,7 @@ This is an example of the `script` tag with the default options:
   data-region="supporter.region"
   data-postalCode="supporter.postcode"
   data-country="supporter.country"
+  data-us_zip_divider=""
 ></script>
 ```
 

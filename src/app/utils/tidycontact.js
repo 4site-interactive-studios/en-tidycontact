@@ -11,6 +11,7 @@ export class TidyContact {
   as_date = ""; // Date of Address Standardization
   as_status = ""; // Status of Address Standardization
   countries = []; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
+  us_zip_divider = ""; // The divider for US Zip Codes
   fields = {
     address1: "supporter.address1", // Address Field 1
     address2: "supporter.address2", // Address Field 2
@@ -85,6 +86,10 @@ export class TidyContact {
     this.as_record = this.getScriptData("as_record", this.as_record);
     this.as_date = this.getScriptData("as_date", this.as_date);
     this.as_status = this.getScriptData("as_status", this.as_status);
+    this.us_zip_divider = this.getScriptData(
+      "us_zip_divider",
+      this.us_zip_divider
+    );
     this.cid = this.getScriptData("cid", this.cid);
     const country_allow = this.getScriptData(
       "country-allow",
@@ -261,8 +266,8 @@ export class TidyContact {
     }
     if (
       "postalCode" in data &&
-      postalCodeValue.match(/\d+/g).join("") ===
-        data.postalCode.match(/\d+/g).join("")
+      postalCodeValue.replace("+", this.us_zip_divider) ===
+        data.postalCode.replace("+", this.us_zip_divider)
     ) {
       // Postal code is the same
       delete data.postalCode;
@@ -276,7 +281,7 @@ export class TidyContact {
           key === "postalCode" &&
           ["US", "USA", "United States"].includes(countryValue)
         ) {
-          value = value.match(/\d+/g).join(""); // Remove all non-numeric characters
+          value = value.replace("+", this.us_zip_divider); // Convert + to the option divider
         }
         response[key] = { from: field.value, to: value };
         field.value = value;
