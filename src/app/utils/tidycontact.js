@@ -23,6 +23,7 @@ export class TidyContact {
   }; // Address Standardization Fields
 
   constructor() {
+    this.loadOptions();
     if (this.isDebug())
       console.log("TidyContact constructor", this.shouldRun());
     if (this.shouldRun()) {
@@ -53,7 +54,6 @@ export class TidyContact {
       }, 10);
       return;
     }
-    this.loadOptions();
     this.createFields();
     this.addEventListeners();
     if (
@@ -67,7 +67,8 @@ export class TidyContact {
   shouldRun() {
     // Only run if there's a engaging networks form
     const donationForm = document.querySelector("form.en__component");
-    if (donationForm && window.hasOwnProperty("pageJson")) {
+    const countryField = this.getField(this.fields.country);
+    if (donationForm && countryField && window.hasOwnProperty("pageJson")) {
       return true;
     }
     return false;
