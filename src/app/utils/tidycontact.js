@@ -11,7 +11,7 @@ export class TidyContact {
   as_date = ""; // Date of Address Standardization
   as_status = ""; // Status of Address Standardization
   countries = []; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
-  us_zip_divider = ""; // The divider for US Zip Codes
+  us_zip_divider = "+"; // The divider for US Zip Codes
   fields = {
     address1: "supporter.address1", // Address Field 1
     address2: "supporter.address2", // Address Field 2
