@@ -11,6 +11,7 @@ export class TidyContact {
   as_date = ""; // Date of Address Standardization
   as_status = ""; // Status of Address Standardization
   countries = []; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
+  country_fallback = ""; // Fallback country if the country field is not found.
   us_zip_divider = "+"; // The divider for US Zip Codes
   fields = {
     address1: "supporter.address1", // Address Field 1
@@ -24,8 +25,6 @@ export class TidyContact {
 
   constructor() {
     this.loadOptions();
-    if (this.isDebug())
-      console.log("TidyContact constructor", this.shouldRun());
     if (this.shouldRun()) {
       if (document.readyState !== "loading") {
         this.init();
@@ -67,10 +66,14 @@ export class TidyContact {
   shouldRun() {
     // Only run if there's a engaging networks form
     const donationForm = document.querySelector("form.en__component");
-    const countryField = this.getField(this.fields.country);
-    if (donationForm && countryField && window.hasOwnProperty("pageJson")) {
+    if (
+      donationForm &&
+      window.hasOwnProperty("pageJson") &&
+      this.hasAddressFields()
+    ) {
       return true;
     }
+    if (this.isDebug()) console.log("TidyContact - No EN Address Fields Found");
     return false;
   }
   loadOptions() {
@@ -92,6 +95,10 @@ export class TidyContact {
       this.us_zip_divider
     );
     this.cid = this.getScriptData("cid", this.cid);
+    this.country_fallback = this.getScriptData(
+      "country_fallback",
+      this.country_fallback
+    );
     const country_allow = this.getScriptData(
       "country-allow",
       this.country_allow
@@ -134,6 +141,32 @@ export class TidyContact {
       return true;
     };
   }
+  hasAddressFields() {
+    const address1 = this.getField(this.fields.address1);
+    const address2 = this.getField(this.fields.address2);
+    const city = this.getField(this.fields.city);
+    const region = this.getField(this.fields.region);
+    const postalCode = this.getField(this.fields.postalCode);
+    const country = this.getField(this.fields.country);
+    return !!(address1 || address2 || city || region || postalCode || country);
+  }
+  canUseAPI() {
+    const country = !!this.getCountry();
+    const address1 = !!this.getFieldValue(this.fields.address1);
+    const city = !!this.getFieldValue(this.fields.city);
+    const region = !!this.getFieldValue(this.fields.region);
+    const postalCode = !!this.getFieldValue(this.fields.postalCode);
+    if (country && address1) {
+      return (city && region) || postalCode;
+    }
+    return false;
+  }
+  getCountry() {
+    const countryFallback = this.country_fallback ?? "";
+    const country = this.getFieldValue(this.fields.country);
+    return country || countryFallback.toUpperCase();
+  }
+
   callAPI() {
     // Call the API
     const address1 = this.getFieldValue(this.fields.address1);
@@ -141,7 +174,7 @@ export class TidyContact {
     const city = this.getFieldValue(this.fields.city);
     const region = this.getFieldValue(this.fields.region);
     const postalCode = this.getFieldValue(this.fields.postalCode);
-    const country = this.getFieldValue(this.fields.country);
+    const country = this.getCountry();
 
     const latitudeField = this.getField("supporter.geo.latitude");
     const longitudeField = this.getField("supporter.geo.longitude");
@@ -149,9 +182,25 @@ export class TidyContact {
     const dateField = this.getField(this.as_date);
     const statusField = this.getField(this.as_status);
 
+    if (!this.canUseAPI()) {
+      if (this.isDebug()) console.log("Not Enough Data to Call API");
+      if (dateField) {
+        dateField.value = this.todaysDate();
+      }
+      if (statusField) {
+        statusField.value = "PARTIALADDRESS";
+      }
+      return true;
+    }
+
     if (!this.countryAllowed(country)) {
       if (recordField) {
-        recordField.value = "DISALLOWED";
+        let record = {};
+        record = Object.assign(
+          { date: this.todaysDate(), status: "DISALLOWED" },
+          record
+        );
+        recordField.value = JSON.stringify(record);
       }
       if (dateField) {
         dateField.value = this.todaysDate();
@@ -210,13 +259,17 @@ export class TidyContact {
             record["longitude"] = data.longitude;
           }
           if (recordField) {
+            record = Object.assign(
+              { date: this.todaysDate(), status: "SUCCESS" },
+              record
+            );
             recordField.value = JSON.stringify(record);
           }
           if (dateField) {
             dateField.value = this.todaysDate();
           }
           if (statusField) {
-            statusField.value = "Success";
+            statusField.value = "SUCCESS";
           }
         } else {
           let record = new Object();
@@ -227,6 +280,10 @@ export class TidyContact {
             record["checksum"] = checksum;
           });
           if (recordField) {
+            record = Object.assign(
+              { date: this.todaysDate(), status: "ERROR" },
+              record
+            );
             recordField.value = JSON.stringify(record);
           }
           if (dateField) {
@@ -234,7 +291,7 @@ export class TidyContact {
           }
           if (statusField) {
             statusField.value =
-              "error" in data ? `Error: ` + data.error : "Invalid Address";
+              "error" in data ? `ERROR: ` + data.error : "INVALIDADDRESS";
           }
         }
       })
@@ -251,7 +308,7 @@ export class TidyContact {
   }
   setFields(data) {
     let response = {};
-    const countryValue = this.getFieldValue(this.fields.country);
+    const country = this.getCountry();
     const postalCodeValue = this.getFieldValue(this.fields.postalCode);
     // Check if there's no address2 field
     const address2Field = this.getField(this.fields.address2);
@@ -280,7 +337,7 @@ export class TidyContact {
         let value = data[key];
         if (
           key === "postalCode" &&
-          ["US", "USA", "United States"].includes(countryValue)
+          ["US", "USA", "United States"].includes(country)
         ) {
           value = value.replace("+", this.us_zip_divider); // Convert + to the option divider
         }
@@ -321,7 +378,7 @@ export class TidyContact {
     input.name = name;
     input.classList.add("en__field__input");
     input.classList.add("en__field__input--text");
-    input.classList.add("engrid-added-input");
+    input.classList.add("tidycontact-added-input");
     input.setAttribute("autocomplete", "off");
     input.value = value;
     form.appendChild(input);
@@ -402,7 +459,7 @@ export class TidyContact {
   }
   getScriptData(attribute, defaultValue = "") {
     const scriptTag = document.querySelector(
-      "script[src*='cdn.tidycontact.io/engagingnetworks.js']"
+      "script[src*='cdn.tidycontact.io/engagingnetworks.js'], script[src*='tidycontact.js']"
     );
     if (scriptTag) {
       const data = scriptTag.getAttribute("data-" + attribute);
@@ -452,7 +509,7 @@ export class TidyContact {
       }
       const errorData = {
         status: this.httpStatus,
-        error: typeof error === "string" ? error : errorType,
+        error: typeof error === "string" ? error : errorType.toUpperCase(),
       };
       recordField.value = JSON.stringify(errorData);
     }
@@ -460,7 +517,7 @@ export class TidyContact {
       dateField.value = this.todaysDate();
     }
     if (statusField) {
-      statusField.value = "API Error";
+      statusField.value = "ERROR-API";
     }
   }
 }
