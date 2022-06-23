@@ -588,7 +588,7 @@ export class TidyContact {
           }
         }
         if (this.phoneEnabled() && "phone" in data) {
-          await this.setPhoneDataFromAPI(data.phone);
+          await this.setPhoneDataFromAPI(data.phone, data.requestId);
         }
       })
       .catch((error) => {
@@ -1178,7 +1178,8 @@ export class TidyContact {
         countryListItem.setAttribute("aria-selected", "true");
         countryListItem.classList.add("tc-highlight");
       }
-      this.closeCountryDropDown();
+      if (selectedFlag.classList.contains("tc-open"))
+        this.closeCountryDropDown();
     }
     phoneInput.setAttribute("placeholder", country.placeholder);
     countryInput.value = country.code;
@@ -1210,7 +1211,7 @@ export class TidyContact {
       }
     }
   }
-  async setPhoneDataFromAPI(data) {
+  async setPhoneDataFromAPI(data, id) {
     const phoneField = this.getField(this.fields.phone);
     const recordField = this.getField(this.ps_record);
     const dateField = this.getField(this.ps_date);
@@ -1230,7 +1231,7 @@ export class TidyContact {
 
       await this.checkSum(JSON.stringify(record)).then((checksum) => {
         if (this.isDebug()) console.log("TidyContact checksum", checksum);
-        record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
+        record["requestId"] = id; // We don't want to add the requestId to the checksum
         record["checksum"] = checksum;
       });
       if (recordField) {
@@ -1249,7 +1250,7 @@ export class TidyContact {
     } else {
       await this.checkSum(JSON.stringify(record)).then((checksum) => {
         if (this.isDebug()) console.log("TidyContact checksum", checksum);
-        record["requestId"] = data.requestId; // We don't want to add the requestId to the checksum
+        record["requestId"] = id; // We don't want to add the requestId to the checksum
         record["checksum"] = checksum;
       });
       if (recordField) {
