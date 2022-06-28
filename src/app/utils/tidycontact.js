@@ -6,7 +6,7 @@ export class TidyContact {
   httpStatus = null;
   timeout = 5; // Seconds to API Timeout
   isDirty = false; // True if the address was changed by the user
-  cid = 0; // Client ID
+  cid = null; // Client ID
   as_record = ""; // Address Standardization Record
   as_date = ""; // Date of Address Standardization
   as_status = ""; // Status of Address Standardization
@@ -28,6 +28,7 @@ export class TidyContact {
   ps_date = ""; // Date of the Phone Standardization
   ps_status = ""; // Status of Phone Standardization
   phone_flags = true; // Add Country Flags to the Phone Field
+  phone_country_from_ip = true; // Should we get the country from the IP address?
   phone_preferred_countries = []; // Prioritize some countries on the list
   countries_list = [
     ["Afghanistan", "af", "93", "070 123 4567"],
@@ -275,6 +276,7 @@ export class TidyContact {
     ["Åland Islands", "ax", "358", "041 2345678"],
   ];
   countries_dropdown = null;
+  country_ip = null;
 
   constructor() {
     this.loadOptions();
@@ -318,6 +320,7 @@ export class TidyContact {
 
     if (this.phoneEnabled()) {
       this.createPhoneFields();
+      this.createPhoneMarginVariable();
       if (this.isDebug())
         console.log("TidyContact Phone Standardization is enabled");
       if (this.countryDropDownEnabled()) {
@@ -333,6 +336,11 @@ export class TidyContact {
     }
   }
   shouldRun() {
+    // Check the CID
+    if (this.cid === null) {
+      console.error("TidyContact script is present but CID is not set");
+      return false;
+    }
     // Only run if there's a engaging networks form
     const donationForm = document.querySelector("form.en__component");
     if (
@@ -383,6 +391,11 @@ export class TidyContact {
     this.ps_status = this.getScriptData("ps_status", this.ps_status);
     this.phone_enable = this.getScriptData("phone_enable", this.phone_enable);
     this.phone_flags = this.getScriptData("phone_flags", this.phone_flags);
+    this.phone_country_from_ip = this.getScriptData(
+      "phone_country_from_ip",
+      this.phone_country_from_ip
+    );
+
     const phone_preferred_countries = this.getScriptData(
       "phone_preferred_countries",
       ""
@@ -773,6 +786,22 @@ export class TidyContact {
       }
     }
   }
+  createPhoneMarginVariable() {
+    const phone = this.getField(this.fields.phone);
+    if (phone) {
+      const phoneStyle = phone.currentStyle || window.getComputedStyle(phone);
+      const marginTop = phoneStyle.marginTop;
+      const marginBottom = phoneStyle.marginBottom;
+      document.documentElement.style.setProperty(
+        "--tc-phone-margin-top",
+        marginTop
+      );
+      document.documentElement.style.setProperty(
+        "--tc-phone-margin-bottom",
+        marginBottom
+      );
+    }
+  }
   todaysDate() {
     return new Date()
       .toLocaleString("en-ZA", {
@@ -873,6 +902,17 @@ export class TidyContact {
   }
   countryDropDownEnabled() {
     return this.phone_flags !== "false";
+  }
+  async getCountryFromIP() {
+    return fetch(`https://${window.location.hostname}/cdn-cgi/trace`)
+      .then((res) => res.text())
+      .then((t) => {
+        let data = t.replace(/[\r\n]+/g, '","').replace(/\=+/g, '":"');
+        data = '{"' + data.slice(0, data.lastIndexOf('","')) + '"}';
+        const jsondata = JSON.parse(data);
+        this.country_ip = jsondata.loc;
+        return this.country_ip;
+      });
   }
   renderFlagsDropDown() {
     const phoneInput = this.getField(this.fields.phone);
@@ -1099,12 +1139,25 @@ export class TidyContact {
     phoneInput.focus();
   }
   getFlagImage(code, name) {
-    return `<img loading="lazy"
-              src="https://flagcdn.com/h20/${code}.png"
-              srcset="https://flagcdn.com/h40/${code}.png 2x,
-              https://flagcdn.com/h60/${code}.png 3x"
-              height="20"
-              alt="${name}">`;
+    return `<picture>
+      <source
+        loading="lazy"
+        type="image/webp"
+        srcset="https://flagcdn.com/h20/${code}.webp,
+          https://flagcdn.com/h40/${code}.webp 2x,
+          https://flagcdn.com/h60/${code}.webp 3x">
+      <source
+        loading="lazy"
+        type="image/png"
+        srcset="https://flagcdn.com/h20/${code}.png,
+          https://flagcdn.com/h40/${code}.png 2x,
+          https://flagcdn.com/h60/${code}.png 3x">
+      <img
+        loading="lazy"
+        src="https://flagcdn.com/h20/${code}.png"
+        height="20"
+        alt="${name}">
+    </picture>`;
   }
   appendCountryItems(countryContainer, countries, className, preferred) {
     let html = "";
@@ -1127,7 +1180,19 @@ export class TidyContact {
     countryContainer.insertAdjacentHTML("beforeend", html);
   }
   setDefaultPhoneCountry() {
-    // First, get the default country Text
+    // First, try to get the country from IP
+    if (this.phone_country_from_ip !== "false") {
+      this.getCountryFromIP()
+        .then((country) => {
+          if (this.isDebug()) console.log("Country from IP:", country);
+          this.setPhoneCountry(this.getCountryByCode(country.toLowerCase()));
+        })
+        .catch((error) => {
+          this.setPhoneCountry("us");
+        });
+      return;
+    }
+    // Then, get the default country Text
     const countryField = this.getField(this.fields.country);
     if (countryField) {
       const countryText = countryField.options[countryField.selectedIndex].text;
@@ -1144,6 +1209,7 @@ export class TidyContact {
         return;
       }
     }
+    // If nothing works, GO USA!
     this.setPhoneCountry(this.getCountryByCode("us"));
   }
   setPhoneCountry(country) {

@@ -1,7 +1,7 @@
 .tc-has-country-flags {
   position: relative;
   input {
-    padding-left: 52px;
+    padding-left: 52px !important;
   }
 }
 .tc-hide {
@@ -12,9 +12,11 @@
   top: 0;
   bottom: 0;
   left: 0;
-  padding: 1px;
+  padding: 0;
   cursor: pointer;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin-top: var(--tc-phone-margin-top);
+  margin-bottom: var(--tc-phone-margin-bottom);
   * {
     box-sizing: border-box;
   }
@@ -34,7 +36,9 @@
   .tc-flag {
     width: 25px;
     line-height: 0;
-    img {
+    img,
+    picture {
+      display: block;
       max-width: 100%;
       object-fit: contain;
     }
@@ -66,14 +70,12 @@
   white-space: nowrap;
   max-height: 205px;
   overflow-y: scroll;
-  scroll-snap-type: y mandatory;
   -webkit-overflow-scrolling: touch;
   .tc-country {
     padding: 5px 10px;
     outline: none;
     display: flex;
     align-items: stretch;
-    scroll-snap-align: start;
     &:hover,
     &.tc-highlight {
       background-color: rgba(0, 0, 0, 0.05);
