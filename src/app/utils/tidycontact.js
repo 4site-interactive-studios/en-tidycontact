@@ -522,7 +522,7 @@ export class TidyContact {
       url: window.location.href,
       cid: this.cid,
     };
-    if (this.phoneEnabled()) {
+    if (this.canUsePhoneAPI()) {
       formData.phone = this.getFieldValue(this.fields.phone);
       formData.phoneCountry = this.getFieldValue("tc.phone.country");
     }
