@@ -36,6 +36,7 @@ In the /dist folder on this code repo you will see a single JavaScript file, [ti
 Now you need to add following script tag to your page template(s), or a code block if you're just testing it out on a single page.
 
 **IMPORTANT** - You must replace the `src` attribute with the URL to the tidycontact.js file you uploaded to your Engaging Networks account.
+
 **IMPORTANT** - You must replace the `data-cid` attribute with your TidyContact Address Client ID.
 
 ### Example
