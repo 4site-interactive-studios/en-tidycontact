@@ -74,9 +74,8 @@ Every option can be set as a data attribute on the `script` tag.
 - **address2** - Address 2 Field Name.
 - **city** - City Field Name.
 - **region** - State Field Name.
-- **postalCode** - Postal Code (zipcode) Field Name.
+- **postalCode** - Postal Code (ZIP Code) Field Name.
 - **country** - Country Field Name.
-- **us_zip_divider** - US ZIP Ccode Divider, defaults to "-".
 
 ## Development
 
