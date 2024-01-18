@@ -29,7 +29,7 @@ Make note of each as you will need to add these three field names to the script 
 
 ## Upload the TidyContact Address Javascript File to your Engaging Networks account
 
-In the /dist folder on this code repo you will see a single JavaScript file, [tidycontact.js](https://github.com/4site-interactive-studios/tidycontact-engaging-networks/tree/main/dist). Download it and then upload it to your Engaging Networks account.
+In the /dist folder on this code repo you will see a single JavaScript file, [tidycontact.js](https://github.com/4site-interactive-studios/en-tidycontact/tree/main/dist). Download it and then upload it to your Engaging Networks account.
 
 ## Add the TidyContact Address Script to your Engaging Networks Page Template
 
