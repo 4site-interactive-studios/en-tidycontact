@@ -4,15 +4,15 @@ export class TidyContact {
   // endpoint = "https://httpstat.us/500?sleep=50000"; // Address Standardization API
   wasCalled = false; // True if the API endpoint was called
   httpStatus = null;
-  timeout = 5; // Seconds to API Timeout
+  timeout = 3; // Seconds to API Timeout
   isDirty = false; // True if the address was changed by the user
   cid = 0; // Client ID
-  as_record = ""; // Address Standardization Record
-  as_date = ""; // Date of Address Standardization
-  as_status = ""; // Status of Address Standardization
-  countries = []; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
-  country_fallback = ""; // Fallback country if the country field is not found.
-  us_zip_divider = "+"; // The divider for US Zip Codes
+  record_field = ""; // Address Standardization Record
+  date_field = ""; // Date of Address Standardization
+  status_field = ""; // Status of Address Standardization
+  countries = ["us"]; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
+  country_fallback = "us"; // Fallback country if the country field is not found.
+  us_zip_divider = "-"; // The divider for US Zip Codes
   fields = {
     address1: "supporter.address1", // Address Field 1
     address2: "supporter.address2", // Address Field 2
@@ -87,9 +87,9 @@ export class TidyContact {
       this.fields.postalCode
     );
     this.fields.country = this.getScriptData("country", this.fields.country);
-    this.as_record = this.getScriptData("as_record", this.as_record);
-    this.as_date = this.getScriptData("as_date", this.as_date);
-    this.as_status = this.getScriptData("as_status", this.as_status);
+    this.record_field = this.getScriptData("record_field", this.record_field);
+    this.date_field = this.getScriptData("date_field", this.date_field);
+    this.status_field = this.getScriptData("status_field", this.status_field);
     this.us_zip_divider = this.getScriptData(
       "us_zip_divider",
       this.us_zip_divider
@@ -178,9 +178,9 @@ export class TidyContact {
 
     const latitudeField = this.getField("supporter.geo.latitude");
     const longitudeField = this.getField("supporter.geo.longitude");
-    const recordField = this.getField(this.as_record);
-    const dateField = this.getField(this.as_date);
-    const statusField = this.getField(this.as_status);
+    const recordField = this.getField(this.record_field);
+    const dateField = this.getField(this.date_field);
+    const statusField = this.getField(this.status_field);
 
     if (!this.canUseAPI()) {
       if (this.isDebug()) console.log("Not Enough Data to Call API");
@@ -398,28 +398,32 @@ export class TidyContact {
       if (this.isDebug())
         console.log("Creating Hidden Field: supporter.geo.longitude");
     }
-    if (this.as_record) {
-      const recordField = this.getField(this.as_record);
+    if (this.record_field) {
+      const recordField = this.getField(this.record_field);
       if (!recordField) {
-        this.createHiddenInput(this.as_record, "");
+        this.createHiddenInput(this.record_field, "");
         if (this.isDebug())
-          console.log("TidyContact creating hidden field: " + this.as_record);
+          console.log(
+            "TidyContact creating hidden field: " + this.record_field
+          );
       }
     }
-    if (this.as_date) {
-      const dateField = this.getField(this.as_date);
+    if (this.date_field) {
+      const dateField = this.getField(this.date_field);
       if (!dateField) {
-        this.createHiddenInput(this.as_date, "");
+        this.createHiddenInput(this.date_field, "");
         if (this.isDebug())
-          console.log("TidyContact creating hidden field: " + this.as_date);
+          console.log("TidyContact creating hidden field: " + this.date_field);
       }
     }
-    if (this.as_status) {
-      const statusField = this.getField(this.as_status);
+    if (this.status_field) {
+      const statusField = this.getField(this.status_field);
       if (!statusField) {
-        this.createHiddenInput(this.as_status, "");
+        this.createHiddenInput(this.status_field, "");
         if (this.isDebug())
-          console.log("TidyContact creating hidden field: " + this.as_status);
+          console.log(
+            "TidyContact creating hidden field: " + this.status_field
+          );
       }
     }
     // If there's no Address 2 or Address 3 field, create them
@@ -459,7 +463,7 @@ export class TidyContact {
   }
   getScriptData(attribute, defaultValue = "") {
     const scriptTag = document.querySelector(
-      "script[src*='cdn.tidycontact.io/engagingnetworks.js'], script[src*='tidycontact.js']"
+      "script[src*='cdn.tidycontact.io/engagingnetworks.js'], script[src*='tidycontact.js'], script[data-tidycontact]"
     );
     if (scriptTag) {
       const data = scriptTag.getAttribute("data-" + attribute);
@@ -476,9 +480,9 @@ export class TidyContact {
     return promise.finally(() => clearTimeout(timeout));
   }
   writeError(error) {
-    const recordField = this.getField(this.as_record);
-    const dateField = this.getField(this.as_date);
-    const statusField = this.getField(this.as_status);
+    const recordField = this.getField(this.record_field);
+    const dateField = this.getField(this.date_field);
+    const statusField = this.getField(this.status_field);
     if (recordField) {
       let errorType = "";
       switch (this.httpStatus) {

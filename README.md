@@ -1,75 +1,85 @@
-# TidyContact Script for Engaging Networks
+# TidyContact Address Integration for Engaging Networks
 
-This project integrates your Engaging Networks form with the TidyContact Address Standardization service.
+This project integrates your Engaging Networks forms with the TidyContact Address Standardization service.
 
-## Set up in Engaging Networks
+**IMPORTANT:** This project only works on Engaging Networks Forms and uses the `window.enOnSubmit` event listener is used to change the fields.
 
-1. Add three custom supporter fields to your Engaging Networks Account. Mark all three as "Available to forms?" with the Default input type of "Hidden".
+# Installation Instructions
+
+## Optional Step: Create Custom Supporter Fields
+
+If you would like TidyContact Address to record the results of the API call, including the original user entered address, the date the call was made, and the returned statuss, then you need to create three custom supporter fields on your Engaging Networks Account to store this information. The field type should be "hidden" and you will need to add the fields to a form in order to get their actual sourc ecode `names``. When creating the three custom fields, we suggest the following field names:
 
 - TidyContact Address Record
 - TidyContact Address Date
 - TidyContact Address Status
 
-## How to use
+After you've created them, add them to a testing form and then inspect the source code of the page to get their values. For example this example markup of hidden field has a code level name of `supporter.NOT_TAGGED_3`.
 
-1. Add the script below to the Engaging Networks page:
+```html
+<input
+  type="hidden"
+  class="en__field__input en__field__input--hidden"
+  name="supporter.NOT_TAGGED_3"
+  value=""
+/>
+```
+
+Make note of each as you will need to add these three field names to the script tag as data attributes. You do not need to include the fields on the page itself, our code will automatically add them.
+
+## Upload the TidyContact Address Javascript File to your Engaging Networks account
+
+In the /dist folder on this code repo you will see a single JavaScript file, [tidycontact.js](https://github.com/4site-interactive-studios/tidycontact-engaging-networks/tree/main/dist). Download it and then upload it to your Engaging Networks account.
+
+## Add the TidyContact Address Script to your Engaging Networks Page Template
+
+Now you need to add following script tag to your page template(s), or a code block if you're just testing it out on a single page.
+
+**IMPORTANT** - You must replace the `src` attribute with the URL to the tidycontact.js file you uploaded to your Engaging Networks account.
+**IMPORTANT** - You must replace the `data-cid` attribute with your TidyContact Address Client ID.
+
+### Example
 
 ```html
 <script
   defer="defer"
-  src="{YOUR_EN_URL}/as-en.js"
-  data-cid="{YOUR_AS_ID}"
+  src="https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/0000/tidycontact.js"
+  data-cid="00000000-0000-0000-0000-000000000000"
 ></script>
 ```
 
-2. The script will look for the address fields following the Engaging Networks default field names. You need to provide a valid **cid** (Address Standardization Client ID) as a data attribute. You can also customize every field via data attributes.
+### Example with Custom Fields for Recording the TidyContact Address API Response
 
-## Options
+```html
+<script
+  defer="defer"
+  src="https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/0000/tidycontact.js"
+  data-cid="00000000-0000-0000-0000-000000000000"
+  data-record_field="supporter.NOT_TAGGED_1"
+  data-date_field="supporter.NOT_TAGGED_2"
+  data-status_field="supporter.NOT_TAGGED_3"
+></script>
+```
+
+## Configuration Options
 
 Every option can be set as a data attribute on the `script` tag.
 
 - **cid** - Address Standardization Client ID (**required**).
-- **as_record** - Address Standardization Record. Set the field name to store the Address Standardization Record Data. Usually a hidden field.
-- **as_date** - Address Standardization Date. Set a field name to store the date. Every time the Address Standardization service is called, this field will be updated.
-- **as_status** - Address Standardization Status. Set a field name to store the status of the last Address Standardization attempt.
+- **record_field** - Address Standardization Record. Set the field name to store the Address Standardization Record Data. Usually a hidden field.
+- **date_field** - Address Standardization Date. Set a field name to store the date. Every time the Address Standardization service is called, this field will be updated.
+- **status_field** - Address Standardization Status. Set a field name to store the status of the last Address Standardization attempt.
 - **address1** - Address 1 Field Name.
 - **address2** - Address 2 Field Name.
 - **city** - City Field Name.
 - **region** - State Field Name.
 - **postalCode** - Postal Code (zipcode) Field Name.
 - **country** - Country Field Name.
-- **us_zip_divider** - US Zipcode Divider.
-
-<div style="page-break-after: always;"></div>
-
-## Default Options
-
-This is an example of the `script` tag with the default options:
-
-```html
-<script
-  defer="defer"
-  src="{YOUR_EN_URL}/as-en.js"
-  data-cid="0"
-  data-as_record=""
-  data-as_date=""
-  data-as_status=""
-  data-address1="supporter.address1"
-  data-address2="supporter.address2"
-  data-city="supporter.city"
-  data-region="supporter.region"
-  data-postalCode="supporter.postcode"
-  data-country="supporter.country"
-  data-us_zip_divider=""
-></script>
-```
-
-### IMPORTANT: This project only works on Engaging Networks Forms. The `window.enOnSubmit` event listener is used to change the fields.
+- **us_zip_divider** - US ZIP Ccode Divider, defaults to "-".
 
 ## Development
 
-Your js code must be on the `src/app` folder.
-Right now, this project has no styling changes, but the structure is ready for you to add your own on `src/scss`.
+If you would like to modify this code repository, please fork it and follow the instructions below to begin your development.
 
 ## Install Dependencies
 
@@ -80,7 +90,4 @@ Right now, this project has no styling changes, but the structure is ready for y
 1. `npm run build` - Builds the project
 2. `npm run watch` - Watch for changes and rebuilds the project
 
-It will create a `dist` folder, where you can get the `as-en.js` file and publish it.
-
-Currently it's published for tests on:  
-https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/1874/as-en.js
+It will create a `dist` folder, where you can get the `tidycontact.js` file and publish it.
