@@ -53,18 +53,19 @@ Now you need to add following script tag to your page template(s), or a code blo
 
 ```html
 <script
-  defer="defer"
+  defer
   src="https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/0000/tidycontact.js"
   data-cid="00000000-0000-0000-0000-000000000000"
-  data-record_field="supporter.NOT_TAGGED_1"
-  data-date_field="supporter.NOT_TAGGED_2"
+  data-date_field="supporter.NOT_TAGGED_1"
+  data-record_field="supporter.NOT_TAGGED_2"
   data-status_field="supporter.NOT_TAGGED_3"
+  data-tidycontact
 ></script>
 ```
 
 ## Configuration Options
 
-Every option can be set as a data attribute on the `script` tag.
+Every option can be set as a data attribute on the `script` tag. For Engaging Networks, we key off the address field tag names, which are the same for all Engaging Networks accounts, and you do not need to include them in your script tag's configuration.
 
 - **cid** - Address Standardization Client ID (**required**).
 - **record_field** - Address Standardization Record. Set the field name to store the Address Standardization Record Data. Usually a hidden field.
