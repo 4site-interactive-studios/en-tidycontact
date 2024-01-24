@@ -53,13 +53,13 @@ Now you need to add following script tag to your page template(s), or a code blo
 
 ```html
 <script
-  defer
-  src="https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/0000/tidycontact.js"
   data-cid="00000000-0000-0000-0000-000000000000"
   data-date_field="supporter.NOT_TAGGED_1"
   data-record_field="supporter.NOT_TAGGED_2"
   data-status_field="supporter.NOT_TAGGED_3"
   data-tidycontact
+  defer
+  src="https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/0000/tidycontact.js"
 ></script>
 ```
 
