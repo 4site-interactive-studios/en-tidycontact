@@ -29,7 +29,7 @@ export class TidyContact {
       if (document.readyState !== "loading") {
         this.init();
       } else {
-        document.addEventListener("DOMContentLoaded", () => {
+        window.addEventListener("load", () => {
           this.init();
         });
       }
@@ -132,11 +132,15 @@ export class TidyContact {
         });
       }
     }
-    // Add event listener to submit
-    window.enOnSubmit = () => {
+    // Add event listener to submit, ensuring any existing onsubmit function is also called
+    const originalEnOnSubmit = window.enOnSubmit;
+    window.enOnSubmit = (...args) => {
       if (this.isDirty && !this.wasCalled) {
-        if (this.isDebug()) console.log("TidyContact Calling Adress API");
-        return this.callAPI();
+        if (this.isDebug()) console.log("TidyContact Calling Address API");
+        this.callAPI();
+      }
+      if (typeof originalEnOnSubmit === "function") {
+        return originalEnOnSubmit.apply(this, args);
       }
       return true;
     };
