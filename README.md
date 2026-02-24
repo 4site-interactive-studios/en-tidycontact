@@ -4,6 +4,8 @@ This project integrates your Engaging Networks forms with the TidyContact Addres
 
 **IMPORTANT:** This project only works on Engaging Networks Forms and uses the `window.enOnSubmit` event listener is used to change the fields.
 
+**NOTE:** If your instance of Engaging Networks uses ENGrid, please [follow the instructions with ENGrid](https://engrid.4sitestudios.com/docs/v2/tidycontact) on how to enable TidyContact Address instead.
+
 # Installation Instructions
 
 ## Optional Step: Create Custom Supporter Fields
