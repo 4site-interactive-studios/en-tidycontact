@@ -4,6 +4,8 @@ This project integrates your Engaging Networks forms with the TidyContact Addres
 
 **IMPORTANT:** This project only works on Engaging Networks Forms and uses the `window.enOnSubmit` event listener is used to change the fields.
 
+**NOTE:** If your instance of Engaging Networks uses ENGrid, please [follow the instructions with ENGrid](https://engrid.4sitestudios.com/docs/v2/tidycontact) on how to enable TidyContact Address instead.
+
 # Installation Instructions
 
 ## Optional Step: Create Custom Supporter Fields
@@ -72,6 +74,7 @@ Every option can be set as a data attribute on the `script` tag. For Engaging Ne
 - **record_field** - Address Standardization Record. Set the field name to store the Address Standardization Record Data. Usually a hidden field.
 - **date_field** - Address Standardization Date. Set a field name to store the date. Every time the Address Standardization service is called, this field will be updated.
 - **status_field** - Address Standardization Status. Set a field name to store the status of the last Address Standardization attempt.
+- **country-allow** - Allowlist of countries that should be run through TidyContact Address, comma separated.
 - **address1** - Address 1 Field Name.
 - **address2** - Address 2 Field Name.
 - **city** - City Field Name.

@@ -29,7 +29,7 @@ export class TidyContact {
       if (document.readyState !== "loading") {
         this.init();
       } else {
-        document.addEventListener("DOMContentLoaded", () => {
+        window.addEventListener("load", () => {
           this.init();
         });
       }
@@ -132,11 +132,15 @@ export class TidyContact {
         });
       }
     }
-    // Add event listener to submit
-    window.enOnSubmit = () => {
+    // Add event listener to submit, ensuring any existing onsubmit function is also called
+    const originalEnOnSubmit = window.enOnSubmit;
+    window.enOnSubmit = async (...args) => {
       if (this.isDirty && !this.wasCalled) {
-        if (this.isDebug()) console.log("TidyContact Calling Adress API");
-        return this.callAPI();
+        if (this.isDebug()) console.log("TidyContact Calling Address API");
+        await this.callAPI();
+      }
+      if (typeof originalEnOnSubmit === "function") {
+        return originalEnOnSubmit.apply(this, args);
       }
       return true;
     };
@@ -167,7 +171,7 @@ export class TidyContact {
     return country || countryFallback.toUpperCase();
   }
 
-  callAPI() {
+  async callAPI() {
     // Call the API
     const address1 = this.getFieldValue(this.fields.address1);
     const address2 = this.getFieldValue(this.fields.address2);
@@ -223,7 +227,7 @@ export class TidyContact {
     this.wasCalled = true;
     if (this.isDebug())
       console.log("TidyContact formData", JSON.parse(JSON.stringify(formData)));
-    const ret = this.fetchTimeout(this.endpoint, this.timeout, {
+    const ret = await this.fetchTimeout(this.endpoint, this.timeout, {
       headers: { "Content-Type": "application/json; charset=utf-8" },
       method: "POST",
       body: JSON.stringify(formData),
