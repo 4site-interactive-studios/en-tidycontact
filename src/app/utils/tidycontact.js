@@ -70,7 +70,7 @@ export class TidyContact {
     if (
       donationForm &&
       window.hasOwnProperty("pageJson") &&
-      this.page_types.includes(this.getPageType()) &&
+      (this.page_types.includes(this.getPageType()) || this.page_types.length === 0) &&
       this.hasAddressFields()
     ) {
       return true;
@@ -78,7 +78,7 @@ export class TidyContact {
     if (this.isDebug()) {
       if (!donationForm) console.log("TidyContact - No EN Form Found");
       if (!window.hasOwnProperty("pageJson")) console.log("TidyContact - No pageJson Found");
-      if (!this.page_types.includes(this.getPageType())) console.log("TidyContact - Page Type Not Allowed: " + this.getPageType());
+      if (!this.page_types.includes(this.getPageType()) && this.page_types.length > 0) console.log("TidyContact - Page Type Not Allowed: " + this.getPageType());
       if (!this.hasAddressFields) console.log("TidyContact - No EN Address Fields Found");
       console.log("TidyContact - Will not run");
     } 
