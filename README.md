@@ -75,12 +75,29 @@ Every option can be set as a data attribute on the `script` tag. For Engaging Ne
 - **date_field** - Address Standardization Date. Set a field name to store the date. Every time the Address Standardization service is called, this field will be updated.
 - **status_field** - Address Standardization Status. Set a field name to store the status of the last Address Standardization attempt.
 - **country-allow** - Allowlist of countries that should be run through TidyContact Address, comma separated.
+- **page-types** - Allowlist of page types that should be run through TidyContact Address, comma separated.
 - **address1** - Address 1 Field Name.
 - **address2** - Address 2 Field Name.
 - **city** - City Field Name.
 - **region** - State Field Name.
 - **postalCode** - Postal Code (ZIP Code) Field Name.
 - **country** - Country Field Name.
+
+### Valid Page Types
+
+- `DONATION` - donation, premiums, and p2p donation pages
+- `ECARD` - ecard pages
+- `SURVEY` - survey and data capture pages
+- `EMAILTOTARGET` - email to target pages
+- `ADVOCACY` - advocacy pages
+- `SUBSCRIBEFORM` - email subscribe form pages
+- `EVENT` - event registration pages
+- `SUPPORTERHUB` - supporter hub pages
+- `UNSUBSCRIBE` - unsubscribe pages
+- `TWEETPAGE` - click to tweet pages
+- `UNKNOWN` - unknown page type, in the event EN makes new types of pages before this script is updated
+
+Leaving the `page-types` attribute off/blank will run TidyContact Address on all pages where the address fields are present.
 
 ## Development
 

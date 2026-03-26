@@ -10,6 +10,7 @@ export class TidyContact {
   record_field = ""; // Address Standardization Record
   date_field = ""; // Date of Address Standardization
   status_field = ""; // Status of Address Standardization
+  page_types = []; // Page types that are allowed to use the API, if empty, all page types are allowed. You can use more than one page type by separating them with a comma.
   countries = ["us"]; // Country that is allowed to use the API, if empty, all countries are allowed. You can use more than one country by separating them with a comma.
   country_fallback = "us"; // Fallback country if the country field is not found.
   us_zip_divider = "-"; // The divider for US Zip Codes
@@ -69,11 +70,18 @@ export class TidyContact {
     if (
       donationForm &&
       window.hasOwnProperty("pageJson") &&
+      (this.page_types.includes(this.getPageType()) || this.page_types.length === 0) &&
       this.hasAddressFields()
     ) {
       return true;
     }
-    if (this.isDebug()) console.log("TidyContact - No EN Address Fields Found");
+    if (this.isDebug()) {
+      if (!donationForm) console.log("TidyContact - No EN Form Found");
+      if (!window.hasOwnProperty("pageJson")) console.log("TidyContact - No pageJson Found");
+      if (!this.page_types.includes(this.getPageType()) && this.page_types.length > 0) console.log("TidyContact - Page Type Not Allowed: " + this.getPageType());
+      if (!this.hasAddressFields) console.log("TidyContact - No EN Address Fields Found");
+      console.log("TidyContact - Will not run");
+    } 
     return false;
   }
   loadOptions() {
@@ -99,6 +107,12 @@ export class TidyContact {
       "country_fallback",
       this.country_fallback
     );
+    const page_types = this.getScriptData("page-types", "");
+    if (page_types) {
+      this.page_types = page_types
+        .split(",")
+        .map((p) => p.trim().toUpperCase());
+    }
     const country_allow = this.getScriptData(
       "country-allow",
       this.country_allow
@@ -110,6 +124,41 @@ export class TidyContact {
     }
 
     if (this.isDebug()) console.log("Countries Allowed", this.countries);
+    if (this.isDebug()) console.log("Page Types Allowed", this.page_types);
+  }
+  getPageType() {
+    if ("pageJson" in window && "pageType" in window.pageJson) {
+      switch (window.pageJson.pageType) {
+        case "p2pcheckout":
+        case "p2pdonation":
+        case "donation":
+        case "premiumgift":
+          return "DONATION";
+        case "e-card":
+          return "ECARD";
+        case "otherdatacapture":
+        case "survey":
+          return "SURVEY";
+        case "emailtotarget":
+          return "EMAILTOTARGET";
+        case "advocacypetition":
+          return "ADVOCACY";
+        case "emailsubscribeform":
+          return "SUBSCRIBEFORM";
+        case "event":
+          return "EVENT";
+        case "supporterhub":
+          return "SUPPORTERHUB";
+        case "unsubscribe":
+          return "UNSUBSCRIBE";
+        case "tweetpage":
+          return "TWEETPAGE";
+        default:
+          return "UNKNOWN";
+      }
+    } else {
+      return "UNKNOWN";
+    }
   }
   getField(name) {
     // Get the field by name
